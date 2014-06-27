@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<program xmlns="http://www.kinoma.com/kpr/1">
+
+    <require id="TCS34725" path="TCS34725"/>
+    <require id="HardwarepinsModule" path="HardwarepinsModule"/>
+
+    <container id="MainContainer" top="0" left="0" bottom="0" right="0">
+    <skin color="white"/>
+        <column>
+            <behavior>
+                <method id="onDisplayed" params="content">
+                    <![CDATA[
+                        // create a new rgb sensor object instance
+                        var tcs34725 = new TCS34725.TCS34725( 27, 29 );
+
+                        // initialize the sensor and start polling
+                        tcs34725.init();
+                        tcs34725.poll( 100, HardwarepinsModule.MILLISECONDS, "/tcs34725/set-color" );
+                    ]]>
+                </method>
+                <method id="handleColorChanged" params="content, color">
+                    <![CDATA[
+                        // change the displays skin using the specified color
+                        content.display.skin = new Skin( color );
+
+                        // set the info label
+                        content.info.string = color;
+                    ]]>
+                </method>
+            </behavior>
+            <content name="display" width="150" height="150"/>
+            <label name="info" string="' - - - '">
+                <style font="18px Arial Bold" color="black"/>
+            </label>
+        </column>
+    </container>
+
+    <script>
+        <![CDATA[
+            // create the main container and add it to the application
+            application.add( new MainContainer() );
+        ]]>
+    </script>
+
+    <handler path="/tcs34725/set-color">
+        <behavior>
+            <method id="onInvoke" params="content, message">
+                <![CDATA[
+                    var data = message.requestObject;
+
+                    if( data != null )
+                        application.distribute( "handleColorChanged", data.webcolor );
+                ]]>
+            </method>
+        </behavior>
+    </handler>
+
+</program>

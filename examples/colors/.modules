@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modulepath>
+   <modulepathentry path="src" type="src"></modulepathentry>
+   <modulepathentry path="com.marvell.kinoma.kpr:/libraries/Hardwarepins.zip" type="lib" kind="plugin"></modulepathentry>
+   <modulepathentry path="hwp-tcs34725" type="lib" kind="project"></modulepathentry>
+</modulepath>

@@ -1,0 +1,136 @@
+<!--
+  Copyright 2011-2014 Marvell Semiconductor, Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<module xmlns="http://www.kinoma.com/kpr/1">
+
+    <require id="HardwarepinsModule" path="HardwarepinsModule" />
+
+    <variable id="DEFAULT_ADDR" value="0x29" />
+
+    <!-- integration time constants -->
+    <variable id="INTEGRATION_TIME_2_4MS" value="0xFF" />
+    <variable id="INTEGRATION_TIME_24MS" value="0xF6" />
+    <variable id="INTEGRATION_TIME_50MS" value="0xEB" />
+    <variable id="INTEGRATION_TIME_101MS" value="0xD5" />
+    <variable id="INTEGRATION_TIME_154MS" value="0xC0" />
+    <variable id="INTEGRATION_TIME_700MS" value="0" />
+    <variable id="INTEGRATION_TIME_AUTO" value="-1"/>
+
+    <!-- gain constants -->
+    <variable id="GAIN_1X" value="0" />
+    <variable id="GAIN_4X" value="0x01" />
+    <variable id="GAIN_16X" value="0x02" />
+    <variable id="GAIN_60X" value="0x03" />
+
+    <!-- +++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- TCS34725 RGB Sensor module implementation -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++ -->
+
+    <class id="TCS34725" like="HardwarepinsModule.I2C">
+        <field id="led" />
+        <field id="integrationTime" />
+        <field id="gain" />
+        <constructor params="sda, scl, addr, led, integrationTime, gain, config">
+            <![CDATA[
+                HardwarepinsModule.I2C.call( this, sda, scl, addr || DEFAULT_ADDR, config );
+                
+                this.led = led;
+                this.integrationTime = integrationTime || INTEGRATION_TIME_24MS;
+                this.gain = gain || GAIN_4X;
+            ]]>
+        </constructor>
+        <method id="createHardwarepinsSimulator">
+            <![CDATA[
+                return new TCS34725SimulatorInterface();
+            ]]>
+        </method>
+        <method id="init" params="callback">
+            <![CDATA[
+                var params = new Object();
+                
+                params.led = this.led;
+                params.integrationTime = this.integrationTime;
+                params.gain = this.gain;
+
+                this.run( "TCS34725Scripts", "tcs34725_bll_init", params, callback );
+            ]]>
+        </method>
+        <method id="get" params="callback">
+            <![CDATA[
+                this.run( "TCS34725Scripts", "tcs34725_bll_get", null, callback );
+            ]]>
+        </method>
+        <method id="poll" params="time, units, callback, skipFirst">
+            <![CDATA[
+                this.repeat( "TCS34725Scripts", "tcs34725_bll_poll", null, time, units, skipFirst, callback );
+            ]]>
+        </method>
+        <method id="ledOn" params="callback">
+            <![CDATA[
+                this.setLED( true, callback );
+            ]]>
+        </method>
+        <method id="ledOff" params="enabled, callback">
+            <![CDATA[
+                this.setLED( false, callback );
+            ]]>
+        </method>
+        <method id="setLED" params="enabled, callback">
+            <![CDATA[
+                var params = new Object();
+                
+                params.led = this.led;
+                params.enabled = enabled;
+
+                this.run( "TCS34725Scripts", "tcs34725_bll_setLED", params, callback );
+            ]]>
+        </method>
+    </class>
+
+    <!-- +++++++++++++++++++++++++++++++++++++++ -->
+    <!-- TCS34725 RGB Sensor simulator interface -->
+    <!-- +++++++++++++++++++++++++++++++++++++++ -->
+
+    <variable id="TCS34725_SIMULATOR_ID" value="'TCS34725'" />
+
+    <class id="TCS34725SimulatorInterface" like="HardwarepinsModule.SimulatorInterface">
+        <method id="getSimulatorId">
+            <![CDATA[
+                return TCS34725_SIMULATOR_ID;
+            ]]>
+        </method>
+        <method id="getSimulatorModule">
+            <![CDATA[
+                return mergeURI( module.uri, "TCS34725Simulator" );
+            ]]>
+        </method>
+        <method id="tcs34725_bll_init" params="query, parameters, invoker">
+            <![CDATA[
+                this.sendHardwarepinsEvent( "init", query, parameters, invoker );
+            ]]>
+        </method>
+        <method id="tcs34725_bll_get" params="query, parameters, invoker">
+            <![CDATA[
+                this.sendHardwarepinsEvent( "get", query, parameters, invoker );
+            ]]>
+        </method>
+        <method id="tcs34725_bll_poll" params="query, parameters, invoker">
+            <![CDATA[
+                this.sendHardwarepinsEvent( "poll", query, parameters, invoker );
+            ]]>
+        </method>
+    </class>
+
+</module>

@@ -1,0 +1,101 @@
+<!--
+  Copyright 2011-2014 Marvell Semiconductor, Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<module xmlns="http://www.kinoma.com/kpr/1">
+
+    <require id="HardwarepinsSimulator" path="kdt/simulator/HardwarepinsSimulator" />
+    <require id="PartSimulators" path="kdt/simulator/PartSimulators" />
+    <require id="HardwarepinsModule" path="HardwarepinsModule" />
+    <require id="TCS34725" path="TCS34725" />
+    <require id="TCS34725Scripts" path="TCS34725Scripts" />
+
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- Function called by the HardwarepinsSimulatorDeviceBehavior  -->
+    <!-- when a simulator interface is registered. The data returned -->
+    <!-- is used to create a new parts simulator part in the device  -->
+    <!-- simulator UI.                                               -->
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+    <function id="createHardwarepinsSimulatorPartData" params="config, id">
+        <![CDATA[
+            var data = null;
+
+            // create part data for a GPIO.Button simulator
+            if( id == TCS34725.TCS34725_SIMULATOR_ID )
+                data = createTCS34725SimulatorPartData( config );
+
+            return data;
+        ]]>
+    </function>
+
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- Simulator implementation for TCS34725 hardwarepins module -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+
+    <function id="createTCS34725SimulatorPartData" params="config">
+        <![CDATA[
+            var data = {
+                id : TCS34725.TCS34725_SIMULATOR_ID,
+                behavior: TCS34725SimulatorPartBehavior,
+                header : { 
+                    label : (config != null && "label" in config) ? config.label : "TCS34725", name : "TCS34725 - RGB Sensor", iconVariant : PartSimulators.SENSOR_KNOB 
+                },
+                axes : [
+                    new PartSimulators.FloatAxisDescription(
+                        {
+                            ioType : "input",
+                            dataType : "float",
+                            valueLabel : "Value",
+                            valueID : "value",
+                            minValue : 0,
+                            maxValue : 1,
+                            value : 0.5,
+                            speed : 5
+                        }
+                    )
+                ]
+            };
+
+            return data;
+        ]]>
+    </function>
+
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- TCS34725SimulatorPartBehavior class - behavior for the simulator -->
+    <!-- part container created by the hardwarepins device simulator.     -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+    <behavior id="TCS34725SimulatorPartBehavior" like="HardwarepinsSimulator.DefaultPartBehavior">
+        <method id="createInputResult" params="content, parameters">
+            <![CDATA[
+                var value = content.delegate( "getValue" );
+                var result = null;
+                
+                if( value != null )
+                {
+                    var color = value.value * 0xFFFFFF;
+                    var r = color >> 16 & 0xFF;
+                    var g = color >> 8 & 0xFF;
+                    var b = color & 0xFF;
+                    
+                    result = TCS34725Scripts.createTCS34725Result( r, g, b, 0xFF );
+                }
+
+                return result;
+            ]]>
+        </method>
+    </behavior>
+
+</module>

@@ -1,0 +1,146 @@
+<!--
+  Copyright 2011-2014 Marvell Semiconductor, Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<module xmlns="http://www.kinoma.com/kpr/1">
+
+    <variable id="COMMAND_BIT" value="0x80" />
+    <variable id="ENABLE" value="0" />
+    <variable id="ENABLE_AIEN" value="0x10" />
+    <variable id="ENABLE_WEN" value="0x08" />
+    <variable id="ENABLE_AEN" value="0x02" />
+    <variable id="ENABLE_PON" value="0x01" />
+    <variable id="ATIME" value="0x01" />
+    <variable id="WTIME" value="0x03" />
+    <variable id="WTIME_2_4MS" value="0xFF" />
+    <variable id="WTIME_204MS" value="0xAB" />
+    <variable id="WTIME_614MS" value="0" />
+    <variable id="AILTL" value="0x04" />
+    <variable id="AILTH" value="0x05" />
+    <variable id="AIHTL" value="0x06" />
+    <variable id="AIHTH" value="0x07" />
+    <variable id="PERS" value="0x0C" />
+    <variable id="PERS_NONE" value="0" />
+    <variable id="PERS_1_CYCLE" value="0x01" />
+    <variable id="PERS_2_CYCLE" value="0x02" />
+    <variable id="PERS_3_CYCLE" value="0x03" />
+    <variable id="PERS_5_CYCLE" value="0x04" />
+    <variable id="PERS_10_CYCLE" value="0x05" />
+    <variable id="PERS_15_CYCLE" value="0x06" />
+    <variable id="PERS_20_CYCLE" value="0x07" />
+    <variable id="PERS_25_CYCLE" value="0x08" />
+    <variable id="PERS_30_CYCLE" value="0x09" />
+    <variable id="PERS_35_CYCLE" value="0x0A" />
+    <variable id="PERS_40_CYCLE" value="0x0B" />
+    <variable id="PERS_45_CYCLE" value="0x0C" />
+    <variable id="PERS_50_CYCLE" value="0x0D" />
+    <variable id="PERS_55_CYCLE" value="0x0E" />
+    <variable id="PERS_60_CYCLE" value="0x0F" />
+    <variable id="CONFIG" value="0x0D" />
+    <variable id="CONFIG_WLONG" value="0x02" />
+    <variable id="CONTROL" value="0x0F" />
+    <variable id="ID" value="0x12" />
+    <variable id="STATUS" value="0x13" />
+    <variable id="STATUS_AINT" value="0x10" />
+    <variable id="STATUS_AVALID" value="0x01" />
+    <variable id="CDATAL" value="0x14" />
+    <variable id="CDATAH" value="0x15" />
+    <variable id="RDATAL" value="0x16" />
+    <variable id="RDATAH" value="0x17" />
+    <variable id="GDATAL" value="0x18" />
+    <variable id="GDATAH" value="0x19" />
+    <variable id="BDATAL" value="0x1A" />
+    <variable id="BDATAH" value="0x1B" />
+
+    <!-- +++++++++++++++++++++++++++++++ -->
+    <!-- TCS34725 RGB Sensor BLL scripts -->
+    <!-- +++++++++++++++++++++++++++++++ -->
+
+    <function id="createTCS34725Result" params="r, g, b, c">
+        <![CDATA[
+            var result = new Object();
+
+            result.raw = { r:r, g:g, b:b, c:c };
+            result.r = Math.round( (result.raw.r / result.raw.c) * 255 );
+            result.g = Math.round( (result.raw.g / result.raw.c) * 255 );
+            result.b = Math.round( (result.raw.b / result.raw.c) * 255 );
+            result.color = (result.r << 16 | result.g << 8 | result.b);
+            result.webcolor = "#" + result.color.toString( 16 );
+
+            return result;
+        ]]>
+    </function>
+    <function id="tcs34725_bll_init" params="parameters">
+        <![CDATA[
+            i2c.init( parameters.sda, parameters.scl );
+            i2c.setSlave( parameters.addr );       
+
+            var id = i2c.readByteDataSMB( COMMAND_BIT | ID );
+
+            // detect
+            if( id == 0x44 )
+            {
+                tcs34725_bll_setIntegerationTime( parameters );
+                tcs34725_bll_setGain( parameters );
+                tcs34725_bll_enable( parameters );
+            }
+            else
+                trace( "### WARNING: TCS34725 not detected!\n" );
+
+            if( parameters.led != null )
+                gpio.init( [parameters.led], "output" );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_get" params="parameters">
+        <![CDATA[
+            i2c.setSlave( parameters.addr );
+
+            var r = i2c.readWordDataSMB( COMMAND_BIT | RDATAL );
+            var g = i2c.readWordDataSMB( COMMAND_BIT | GDATAL );
+            var b = i2c.readWordDataSMB( COMMAND_BIT | BDATAL );
+            var c = i2c.readWordDataSMB( COMMAND_BIT | CDATAL );
+
+            return createTCS34725Result( r, g, b, c );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_poll" params="parameters">
+        <![CDATA[
+            return tcs34725_bll_get( parameters );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_setLED" params="parameters">
+        <![CDATA[
+            if( parameters.led != null )
+                gpio.set( [parameters.led], parameters.enabled == true ? 1 : 0 );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_setIntegerationTime" params="parameters">
+        <![CDATA[
+            i2c.writeByteDataSMB( COMMAND_BIT | ATIME, parameters.integrationTime );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_setGain" params="parameters">
+        <![CDATA[
+            i2c.writeByteDataSMB( COMMAND_BIT | ATIME, parameters.integrationTime );
+        ]]>
+    </function>
+    <function id="tcs34725_bll_enable" params="parameters">
+        <![CDATA[
+            i2c.writeByteDataSMB( COMMAND_BIT | ENABLE, ENABLE_PON );
+            sensorUtils.mdelay( 3 );
+            i2c.writeByteDataSMB( COMMAND_BIT | ENABLE, ENABLE_PON | ENABLE_AEN);  
+        ]]>
+    </function>
+
+</module>
