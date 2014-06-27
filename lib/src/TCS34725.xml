@@ -45,7 +45,7 @@
         <constructor params="sda, scl, addr, led, integrationTime, gain, config">
             <![CDATA[
                 HardwarepinsModule.I2C.call( this, sda, scl, addr || DEFAULT_ADDR, config );
-                
+
                 this.led = led;
                 this.integrationTime = integrationTime || INTEGRATION_TIME_24MS;
                 this.gain = gain || GAIN_4X;
@@ -59,7 +59,7 @@
         <method id="init" params="callback">
             <![CDATA[
                 var params = new Object();
-                
+
                 params.led = this.led;
                 params.integrationTime = this.integrationTime;
                 params.gain = this.gain;
@@ -90,7 +90,7 @@
         <method id="setLED" params="enabled, callback">
             <![CDATA[
                 var params = new Object();
-                
+
                 params.led = this.led;
                 params.enabled = enabled;
 
