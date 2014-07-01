@@ -64,24 +64,24 @@ Creating a new instance of a TCS34725 object:
 var tcs34725 = new TCS34725.TCS34725( sda, scl, addr, led, integrationTime, gain, config );
 ```
 
-The LED pin specified in the constructor is used control an optional LED light on the breakout board if it has one (such as the [Adafruit TCS34725 RGB Sensor](http://www.adafruit.com/product/1334)). 
-
-By default, the sensor's integration time is set automatically by to the most appropriate value when polling. The integrationTime can be specified using one of the following constants, specified in the TCS34725 module:
-
-* INTEGRATION_TIME_AUTO
-* INTEGRATION_TIME_2_4MS
-* INTEGRATION_TIME_24MS
-* INTEGRATION_TIME_50MS
-* INTEGRATION_TIME_101MS
-* INTEGRATION_TIME_154MS
-* INTEGRATION_TIME_700MS
-
-The sensor's gain can be controlled by specifying one of the following constants:
-
-* GAIN_1X
-* GAIN_4X
-* GAIN_16X
-* GAIN_60X
+>The led pin specified in the constructor is used control an optional LED light on the breakout board if it has one (such as the [Adafruit TCS34725 RGB Sensor](http://www.adafruit.com/product/1334)). 
+>
+>By default, the sensor's integration time is set automatically by to the most appropriate value when polling. The integrationTime can be specified using one of the following constants, specified in the TCS34725 module:
+>
+>* INTEGRATION_TIME_AUTO
+>* INTEGRATION_TIME_2_4MS
+>* INTEGRATION_TIME_24MS
+>* INTEGRATION_TIME_50MS
+>* INTEGRATION_TIME_101MS
+>* INTEGRATION_TIME_154MS
+>* INTEGRATION_TIME_700MS
+>
+>The sensor's gain can be controlled by specifying one of the following constants:
+>
+>* GAIN_1X
+>* GAIN_4X
+>* GAIN_16X
+>* GAIN_60X
 
 Initializing the TCS34725 object instance:
 
@@ -101,15 +101,15 @@ To continuously poll the RGB values from the sensor, you must specify the pollin
 tcs34725.poll( time, units, callback, skipFirst );
 ```
 
-The units parameter must be one of the following string literal values:
-
-* milliseconds
-* seconds
-* minutes
-* microseconds
-* nanoseconds
-* hours
-* days
+>The units parameter must be one of the following string literal values:
+>
+>* milliseconds
+>* seconds
+>* minutes
+>* microseconds
+>* nanoseconds
+>* hours
+>* days
 
 When the TCS34725 object's callback handler is invoked, the result will be passed in the message requestObject property. The RGB value will be passed in a data structure to the application in the following format:
 
